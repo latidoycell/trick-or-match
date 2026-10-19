@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trick-or-Match!</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&display=swap">
+<style>
+:root{--bg:#0d0618;--card:#2a1240;--back:#ff7a1a;--back2:#c24d00;--face:#fff7e6;--ink:#2a1540;--text:#fff3e0;--good:#5be37d;--accent:#ffb347;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+button,.tile{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+button.btn{min-height:44px}
+@media(hover:none){.tile:hover .b{filter:none}button.btn:hover{background:var(--back)}}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 85% 9%,#fff4c2 0 24px,rgba(255,230,150,.3) 25px 60px,transparent 130px),radial-gradient(ellipse at 50% 112%,rgba(255,110,0,.38),transparent 55%),linear-gradient(#0d0618,#1e0a33 60%,#2b0f2a);background-attachment:fixed;color:var(--text);font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;text-align:center}
+main{position:relative;z-index:1}
+.decor{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.bat{position:absolute;left:0;font-size:1.8rem;opacity:.85;animation:fly 16s linear infinite}
+@keyframes fly{from{transform:translateX(-12vw) translateY(0)}50%{transform:translateX(50vw) translateY(24px)}to{transform:translateX(112vw) translateY(0)}}
+.web{position:absolute;top:0;font-size:4rem;opacity:.5;line-height:1}
+.fog{position:absolute;left:0;right:0;bottom:0;height:110px;background:linear-gradient(transparent,rgba(190,170,255,.14))}
+.grave{position:absolute;bottom:2px;left:0;right:0;display:flex;justify-content:space-around;font-size:2rem;opacity:.5}
+.tile:hover .b{filter:brightness(1.25)}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-family:Creepster,Chalkduster,"Trebuchet MS",cursive;font-weight:normal;font-size:clamp(2rem,9vw,3.2rem);letter-spacing:3px;margin:8px 0;color:#ff8a1f;text-shadow:0 0 12px rgba(255,122,26,.8),3px 3px 0 #5a1a8c}
+.sub{margin:0 0 12px;opacity:.85}
+.bar{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.pill{background:var(--card);border-radius:999px;padding:6px 14px;font-weight:bold}
+button.btn{background:var(--back);color:#fff;border:0;border-radius:999px;padding:8px 18px;font:inherit;font-weight:bold;cursor:pointer}
+button.btn:hover{background:var(--back2)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:420px){.grid{grid-template-columns:repeat(3,1fr)}}
+.tile{aspect-ratio:3/4;perspective:700px;border:0;background:none;padding:0;cursor:pointer}
+.in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.tile.flip .in{transform:rotateY(180deg)}
+.f,.b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.b{background:radial-gradient(circle,#4a1c7c 0 35%,#1d0a33 100%);border:3px solid #ff7a1a;font-size:2.6rem;box-shadow:0 0 14px rgba(255,122,26,.55),0 4px 10px rgba(0,0,0,.5)}
+.f{background:var(--face);color:var(--ink);transform:rotateY(180deg);font-weight:bold;font-size:clamp(.9rem,3.6vw,1.2rem);gap:2px}
+.f svg{width:86%;height:auto}
+.tile.done .f{background:#d9ffe2;outline:4px solid var(--good)}
+.tile.shake .in{animation:sh .4s}
+@keyframes sh{0%,100%{transform:rotateY(180deg)}25%{transform:rotateY(180deg) translateX(-6px)}75%{transform:rotateY(180deg) translateX(6px)}}
+#win{display:none;margin:18px 0;padding:16px;background:var(--card);border-radius:14px;border:3px solid var(--accent)}
+#win.show{display:block}
+</style>
+</head>
+<body>
+<div class="decor" aria-hidden="true"><span class="web" style="left:0">🕸️</span><span class="web" style="right:0;transform:scaleX(-1)">🕸️</span><span class="bat" style="top:12%">🦇</span><span class="bat" style="top:38%;animation-delay:-6s;font-size:1.3rem">🦇</span><span class="bat" style="top:64%;animation-delay:-11s">🦇</span><div class="fog"></div><div class="grave"><span>🪦</span><span>🌳</span><span>🪦</span><span>🕯️</span><span>🌳</span><span>🪦</span></div></div>
+<main>
+<h1>🎃 Trick-or-Match! 🎃</h1>
+<p class="sub">Flip two tiles. Find the two that are the same!</p>
+<div class="bar">
+<span hidden id="moves">0</span><span hidden id="pairs">0</span>
+<span class="pill">⏱️ <span id="time">0:00</span></span>
+
+<button class="btn" id="sound">🗣️ Voice on</button><button class="btn" id="music">🎵 Music on</button>
+<button class="btn" id="restart">New game</button>
+</div>
+<div class="grid" id="grid"></div>
+<div id="win"><h2>👻 Spooktacular! 🎉</h2><p>You found all 6 pairs in <b id="fm"></b> moves.<br>⏱️ Time: <b id="ft"></b></p><button class="btn" id="again">Play again</button></div>
+</main>
+<script>
+var O='#2a1540';
+function S(x){return '<svg viewBox="0 0 100 100"><g stroke="'+O+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">'+x+'</g></svg>'}
+var WITCH=S('<path d="M20 48Q12 74 28 84L34 52Z" fill="#ff8a1f"/><path d="M80 48Q88 74 72 84L66 52Z" fill="#ff8a1f"/><ellipse cx="50" cy="62" rx="23" ry="24" fill="#8fd16a"/><path d="M34 40Q50 30 66 40L66 50Q50 44 34 50Z" fill="#ff8a1f" stroke="none"/><circle cx="41" cy="58" r="6.5" fill="#fff"/><circle cx="59" cy="58" r="6.5" fill="#fff"/><circle cx="42" cy="59" r="3" fill="'+O+'" stroke="none"/><circle cx="58" cy="59" r="3" fill="'+O+'" stroke="none"/><circle cx="43" cy="57.5" r="1" fill="#fff" stroke="none"/><circle cx="59" cy="57.5" r="1" fill="#fff" stroke="none"/><path d="M50 61Q58 68 50 71" fill="#74b84f"/><circle cx="62" cy="72" r="2" fill="#5a9a3a" stroke-width="1.5"/><circle cx="35" cy="69" r="4" fill="#ff9db5" stroke="none"/><circle cx="65" cy="69" r="4" fill="#ff9db5" stroke="none"/><path d="M39 75Q50 87 61 75Z" fill="#7a1f3a"/><path d="M45 77L47 82L49 78Z" fill="#fff" stroke-width="1.5"/><ellipse cx="50" cy="40" rx="35" ry="8" fill="#3b2a5c"/><path d="M32 38Q47 22 52 4Q60 24 68 38Z" fill="#3b2a5c"/><path d="M35 32L66 32L68 38L33 38Z" fill="#ff7a1a"/><rect x="45" y="31" width="10" height="8" rx="1.5" fill="#ffd93b" stroke-width="2"/>');
+var GHOST=S('<path d="M22 92L22 46Q22 10 50 10Q78 10 78 46L78 92L69 83L60 92L50 83L40 92L31 83Z" fill="#f4f7ff"/><path d="M22 60Q8 62 10 72Q14 70 22 72" fill="#f4f7ff"/><path d="M78 60Q92 62 90 72Q86 70 78 72" fill="#f4f7ff"/><ellipse cx="39" cy="43" rx="6" ry="8" fill="'+O+'"/><ellipse cx="61" cy="43" rx="6" ry="8" fill="'+O+'"/><circle cx="41" cy="40" r="2.2" fill="#fff" stroke="none"/><circle cx="63" cy="40" r="2.2" fill="#fff" stroke="none"/><circle cx="30" cy="57" r="5" fill="#ffb3c8" stroke="none"/><circle cx="70" cy="57" r="5" fill="#ffb3c8" stroke="none"/><ellipse cx="50" cy="64" rx="8" ry="10" fill="#6a1f4a"/><ellipse cx="50" cy="69" rx="5" ry="3.5" fill="#ff7b9c" stroke="none"/>');
+var MONSTER=S('<path d="M26 34L24 10L42 26Z" fill="#ffd93b"/><path d="M74 34L76 10L58 26Z" fill="#ffd93b"/><ellipse cx="14" cy="64" rx="8" ry="12" fill="#9b6bff"/><ellipse cx="86" cy="64" rx="8" ry="12" fill="#9b6bff"/><ellipse cx="50" cy="56" rx="35" ry="36" fill="#9b6bff"/><ellipse cx="38" cy="90" rx="11" ry="6" fill="#ff8a1f"/><ellipse cx="62" cy="90" rx="11" ry="6" fill="#ff8a1f"/><circle cx="50" cy="42" r="17" fill="#fff"/><circle cx="50" cy="44" r="9" fill="#2fbf71"/><circle cx="50" cy="44" r="4.5" fill="'+O+'" stroke="none"/><circle cx="53" cy="40" r="2.2" fill="#fff" stroke="none"/><path d="M27 68Q50 92 73 68Q50 74 27 68Z" fill="#5a1230"/><path d="M33 70L37 78L41 72L46 80L50 73L54 80L59 72L63 78L67 70Z" fill="#fff" stroke-width="1.5"/><circle cx="26" cy="54" r="2.5" fill="#7d4fe0" stroke="none"/><circle cx="76" cy="52" r="2.5" fill="#7d4fe0" stroke="none"/><circle cx="68" cy="66" r="2" fill="#7d4fe0" stroke="none"/>');
+var ZOMBIE=S('<path d="M12 100Q50 74 88 100Z" fill="#5c6bc0"/><path d="M40 82L50 92L60 82" fill="none" stroke-width="2.5"/><rect x="24" y="26" width="52" height="58" rx="18" fill="#9ccc65"/><path d="M24 40Q22 16 38 20Q42 8 54 18Q70 10 76 32Q72 24 60 28Q48 22 40 30Q30 26 24 40Z" fill="#4a4a5a"/><path d="M38 32L50 36L62 32" fill="none" stroke-width="2"/><path d="M42 29L44 35M50 31L52 37M58 29L60 35" stroke-width="2"/><circle cx="40" cy="52" r="9" fill="#fff"/><circle cx="62" cy="54" r="6.5" fill="#fff"/><circle cx="42" cy="54" r="4" fill="#c0392b" stroke="none"/><circle cx="42" cy="54" r="2" fill="'+O+'" stroke="none"/><circle cx="60" cy="55" r="3" fill="'+O+'" stroke="none"/><path d="M31 44L47 47M55 47L69 45" stroke-width="3"/><path d="M44 58L46 66L42 66Z" fill="#7cb342" stroke-width="2"/><path d="M34 71Q48 80 66 70L66 76Q48 84 34 77Z" fill="#6a1f2a"/><path d="M40 74L40 79M46 76L46 81M52 76L52 80M58 74L58 78" stroke="#fff" stroke-width="3"/><path d="M60 62L68 66M62 66L68 62" stroke-width="2"/><circle cx="30" cy="66" r="3.5" fill="#d4e157" stroke="none"/>');
+var MUMMY=S('<path d="M72 80Q88 84 84 98Q80 90 70 90Z" fill="#efe3c2" stroke-width="2.5"/><ellipse cx="50" cy="52" rx="35" ry="40" fill="#efe3c2"/><g stroke="#b9a77c" stroke-width="4"><path d="M18 30L82 22"/><path d="M15 42L86 36"/><path d="M15 66L86 72"/><path d="M20 78L80 86"/><path d="M26 16L74 12"/></g><path d="M16 50Q50 40 84 50L84 62Q50 52 16 62Z" fill="#3b2a5c"/><circle cx="38" cy="54" r="8" fill="#fff"/><circle cx="62" cy="54" r="8" fill="#fff"/><circle cx="39" cy="55" r="4" fill="#ffb300" stroke="none"/><circle cx="39" cy="55" r="2" fill="'+O+'" stroke="none"/><circle cx="61" cy="55" r="4" fill="#ffb300" stroke="none"/><circle cx="61" cy="55" r="2" fill="'+O+'" stroke="none"/><circle cx="30" cy="72" r="4" fill="#ffb3a0" stroke="none"/><circle cx="70" cy="72" r="4" fill="#ffb3a0" stroke="none"/><path d="M40 76Q50 86 60 76" fill="none"/>');
+var CAT=S('<path d="M20 46L22 12L46 30Z" fill="#2b2b3a"/><path d="M80 46L78 12L54 30Z" fill="#2b2b3a"/><path d="M26 38L27 21L38 31Z" fill="#ff9db5" stroke="none"/><path d="M74 38L73 21L62 31Z" fill="#ff9db5" stroke="none"/><ellipse cx="50" cy="56" rx="34" ry="30" fill="#2b2b3a"/><ellipse cx="36" cy="52" rx="9" ry="10" fill="#ffe03b"/><ellipse cx="64" cy="52" rx="9" ry="10" fill="#ffe03b"/><ellipse cx="36" cy="52" rx="2.8" ry="8" fill="'+O+'" stroke="none"/><ellipse cx="64" cy="52" rx="2.8" ry="8" fill="'+O+'" stroke="none"/><circle cx="39" cy="48" r="2" fill="#fff" stroke="none"/><circle cx="67" cy="48" r="2" fill="#fff" stroke="none"/><path d="M45 64L55 64L50 70Z" fill="#ff7b9c" stroke-width="2"/><path d="M50 70Q44 78 38 73M50 70Q56 78 62 73" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M12 62L30 66M12 72L30 70M88 62L70 66M88 72L70 70" stroke="#fff" stroke-width="2"/><path d="M30 86Q50 96 70 86L68 96Q50 104 32 96Z" fill="#ff7a1a"/><circle cx="50" cy="94" r="5" fill="#ffd93b" stroke-width="2"/>');
+var WORDS=[{w:'witch',s:WITCH},{w:'ghost',s:GHOST},{w:'monster',s:MONSTER},{w:'zombie',s:ZOMBIE},{w:'mummy',s:MUMMY},{w:'black cat',s:CAT}];
+var grid=document.getElementById('grid'),first=null,lock=false,moves=0,pairs=0,sound=true,tmr=null,t0=0,secs=0;
+function fmt(s){var m=Math.floor(s/60),r=s%60;return m+':'+(r<10?'0':'')+r}
+function showTime(){document.getElementById('time').textContent=fmt(secs)}
+function beginTimer(){t0=Date.now();tmr=setInterval(function(){secs=Math.floor((Date.now()-t0)/1000);showTime()},250)}
+function stopTimer(){clearInterval(tmr);secs=Math.floor((Date.now()-t0)/1000);showTime()}
+function say(t){if(!sound||!window.speechSynthesis)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.85;speechSynthesis.speak(u)}catch(e){}}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function start(){
+ grid.innerHTML='';first=null;lock=false;moves=0;pairs=0;
+ document.getElementById('moves').textContent=0;document.getElementById('pairs').textContent=0;clearInterval(tmr);tmr=null;secs=0;showTime();
+ document.getElementById('win').classList.remove('show');
+ var cards=[];WORDS.forEach(function(d,i){cards.push({id:i,d:d});cards.push({id:i,d:d})});
+ shuffle(cards).forEach(function(c){
+  var b=document.createElement('button');b.className='tile';b.setAttribute('aria-label','Hidden card');
+  b.innerHTML='<div class="in"><div class="b">🎃</div><div class="f">'+c.d.s+'<span>'+c.d.w+'</span></div></div>';
+  b._c=c;b.addEventListener('click',function(){pick(b)});grid.appendChild(b)});
+}
+function pick(b){
+ if(lock||b.classList.contains('flip'))return;
+ b.classList.add('flip');say(b._c.d.w);if(!tmr)beginTimer();
+ if(!first){first=b;return}
+ moves++;document.getElementById('moves').textContent=moves;
+ var a=first;first=null;
+ if(a._c.id===b._c.id){
+  a.classList.add('done');b.classList.add('done');pairs++;
+  document.getElementById('pairs').textContent=pairs;
+  if(pairs===6){stopTimer();setTimeout(function(){document.getElementById('ft').textContent=fmt(secs);document.getElementById('fm').textContent=moves;document.getElementById('win').classList.add('show')},600);}
+ }else{
+  lock=true;a.classList.add('shake');b.classList.add('shake');
+  setTimeout(function(){a.classList.remove('flip','shake');b.classList.remove('flip','shake');lock=false},1000);
+ }
+}
+document.getElementById('restart').onclick=start;document.getElementById('again').onclick=start;
+document.getElementById('sound').onclick=function(){sound=!sound;this.textContent=sound?'🗣️ Voice on':'🔇 Voice off'};
+var AC=null,master=null,musicOn=true,eerieTimer=null;
+function eerie(){
+ if(!musicOn||!AC)return;
+ var t=AC.currentTime,notes=[311.1,392,415.3,466.2,523.3],f=notes[Math.floor(Math.random()*notes.length)];
+ var o=AC.createOscillator();o.type='sine';o.frequency.setValueAtTime(f*0.97,t);o.frequency.linearRampToValueAtTime(f,t+1.2);
+ var v=AC.createOscillator();v.frequency.value=5;var vg=AC.createGain();vg.gain.value=f*0.012;v.connect(vg);vg.connect(o.frequency);
+ var g=AC.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.18,t+1.2);g.gain.linearRampToValueAtTime(0,t+3.5);
+ o.connect(g);g.connect(master);o.start(t);v.start(t);o.stop(t+3.6);v.stop(t+3.6);
+}
+function loopEerie(){clearTimeout(eerieTimer);eerieTimer=setTimeout(function(){eerie();loopEerie()},4000+Math.random()*5000)}
+function startMusic(){
+ if(!musicOn)return;
+ try{
+  if(!AC){
+   var C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+   AC=new C();master=AC.createGain();master.gain.value=0;master.connect(AC.destination);
+   var lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=220;lp.connect(master);
+   [55,55.7,82.4].forEach(function(fr,i){var o=AC.createOscillator();o.type=i<2?'sawtooth':'triangle';o.frequency.value=fr;var g=AC.createGain();g.gain.value=i<2?0.35:0.25;o.connect(g);g.connect(lp);o.start()});
+   var lfo=AC.createOscillator();lfo.frequency.value=0.12;var lg=AC.createGain();lg.gain.value=90;lfo.connect(lg);lg.connect(lp.frequency);lfo.start();
+   var len=AC.sampleRate*2,buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);
+   for(var i=0;i<len;i++)d[i]=Math.random()*2-1;
+   var ns=AC.createBufferSource();ns.buffer=buf;ns.loop=true;
+   var bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=500;bp.Q.value=2;
+   var wg=AC.createGain();wg.gain.value=0.5;ns.connect(bp);bp.connect(wg);wg.connect(master);ns.start();
+   var l2=AC.createOscillator();l2.frequency.value=0.07;var l2g=AC.createGain();l2g.gain.value=250;l2.connect(l2g);l2g.connect(bp.frequency);l2.start();
+  }
+  if(AC.state==='suspended')AC.resume();
+  master.gain.cancelScheduledValues(AC.currentTime);
+  master.gain.linearRampToValueAtTime(0.12,AC.currentTime+2);
+  loopEerie();
+ }catch(e){}
+}
+function stopMusic(){
+ clearTimeout(eerieTimer);
+ if(!AC)return;
+ master.gain.cancelScheduledValues(AC.currentTime);
+ master.gain.linearRampToValueAtTime(0,AC.currentTime+0.6);
+ setTimeout(function(){if(!musicOn&&AC)AC.suspend()},800);
+}
+document.getElementById('music').onclick=function(){musicOn=!musicOn;this.textContent=musicOn?'🎵 Music on':'🔇 Music off';if(musicOn)startMusic();else stopMusic()};
+document.addEventListener('pointerdown',function f(){startMusic();document.removeEventListener('pointerdown',f)});
+start();
+</script>
+</body>
+</html>
